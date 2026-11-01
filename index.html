@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>TIR Control · Transporte e Inversiones R.L.</title>
+<meta name="description" content="App de control de Transporte e Inversiones R.L.">
+<meta name="theme-color" content="#1F4D3A">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; manifest-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TIR Control">
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;min-height:100%;background:#1F4D3A;color:#fff;font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+  main{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 20px calc(32px + env(safe-area-inset-bottom));text-align:center}
+  img.logo{width:112px;height:112px;border-radius:26px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+  h1{font-size:24px;margin:22px 0 4px;letter-spacing:-.01em}
+  .sub{color:rgba(255,255,255,.78);margin:0 0 26px}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;width:100%;max-width:320px;padding:15px 20px;border-radius:14px;border:0;font:inherit;font-weight:800;cursor:pointer;text-decoration:none}
+  .prim{background:#fff;color:#1F4D3A}
+  .sec{background:rgba(255,255,255,.12);color:#fff;margin-top:10px}
+  .card{background:rgba(255,255,255,.1);border-radius:16px;padding:16px 18px;max-width:340px;text-align:left;margin-top:22px;font-size:14px;color:rgba(255,255,255,.9)}
+  .card b{color:#fff}
+  .card ol{margin:6px 0 0;padding-left:20px}
+  .spin{width:30px;height:30px;border:3px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:s 1s linear infinite;margin:6px auto 14px}
+  @keyframes s{to{transform:rotate(360deg)}}
+  .hide{display:none!important}
+  .err{background:#FDECEA;color:#B42318;border-radius:12px;padding:12px 14px;max-width:340px;font-size:14px;margin-top:18px}
+  .pie{margin-top:26px;font-size:12px;color:rgba(255,255,255,.6);max-width:340px}
+</style>
+</head>
+<body>
+<main>
+  <img class="logo" src="icons/icon-512.png" alt="">
+  <h1>Transporte e Inversiones R.L.</h1>
+  <p class="sub">Control de inversiones, ventas, transporte, bienes y préstamos</p>
+
+  <!-- Vista cuando se abre desde el ícono instalado -->
+  <section id="vApp" class="hide">
+    <div class="spin"></div>
+    <p class="sub" style="margin:0 0 18px">Abriendo el sistema…</p>
+    <a class="btn prim" id="abrir2" href="#">Abrir el sistema</a>
+  </section>
+
+  <!-- Vista cuando se abre en el navegador (todavía no instalada) -->
+  <section id="vWeb" class="hide" style="width:100%;display:flex;flex-direction:column;align-items:center">
+    <button class="btn prim hide" id="instalar">⬇ Instalar la app</button>
+    <a class="btn sec" id="abrir" href="#">Abrir el sistema sin instalar</a>
+
+    <div class="card hide" id="ayudaIOS"><b>Instalar en iPhone / iPad</b>
+      <ol><li>Abra esta página en <b>Safari</b>.</li><li>Toque <b>Compartir</b> (cuadro con flecha ↑).</li><li>Elija <b>Agregar a inicio</b> → <b>Agregar</b>.</li></ol></div>
+    <div class="card hide" id="ayudaAndroid"><b>Instalar en Android</b>
+      <ol><li>Abra esta página en <b>Chrome</b>.</li><li>Toque el menú <b>⋮</b>.</li><li>Elija <b>Instalar app</b> o <b>Agregar a pantalla principal</b>.</li></ol></div>
+    <div class="card hide" id="ayudaPC"><b>Instalar en la computadora</b>
+      <ol><li>Abra esta página en <b>Chrome</b> o <b>Edge</b>.</li><li>Pulse el ícono <b>Instalar</b> (⊕) a la derecha de la barra de direcciones, o menú <b>⋮ → Transmitir, guardar y compartir → Instalar página como app</b>.</li></ol></div>
+  </section>
+
+  <div class="err hide" id="err">Falta configurar el enlace del sistema en <b>config.js</b>.</div>
+  <p class="pie">Acceso solo para usuarios autorizados. Se pedirá su cuenta de Google y su PIN.</p>
+</main>
+<script src="config.js"></script>
+<script>
+(function () {
+  var URL_APP = String(window.TIR_APP_URL || '');
+  var valido = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(URL_APP);
+  var $ = function (id) { return document.getElementById(id); };
+  var instalada = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  var ua = navigator.userAgent, ios = /iPhone|iPad|iPod/.test(ua) || (ua.indexOf('Mac') > -1 && 'ontouchend' in document), android = /Android/.test(ua);
+
+  if (!valido) { $('err').classList.remove('hide'); }
+  ['abrir', 'abrir2'].forEach(function (id) {
+    var a = $(id); a.href = valido ? URL_APP : '#';
+    a.addEventListener('click', function (e) { if (!valido) { e.preventDefault(); $('err').classList.remove('hide'); } });
+  });
+
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function () {});
+
+  if (instalada) {
+    $('vApp').classList.remove('hide');
+    if (valido) setTimeout(function () { location.href = URL_APP; }, 700);   // abre el sistema solo
+  } else {
+    $('vWeb').classList.remove('hide');
+    $(ios ? 'ayudaIOS' : android ? 'ayudaAndroid' : 'ayudaPC').classList.remove('hide');
+    var aviso = null;
+    window.addEventListener('beforeinstallprompt', function (e) {
+      e.preventDefault(); aviso = e; $('instalar').classList.remove('hide');
+    });
+    $('instalar').addEventListener('click', function () {
+      if (!aviso) return;
+      aviso.prompt();
+      aviso.userChoice.finally(function () { aviso = null; $('instalar').classList.add('hide'); });
+    });
+    window.addEventListener('appinstalled', function () { $('instalar').classList.add('hide'); });
+  }
+})();
+</script>
+</body>
+</html>
