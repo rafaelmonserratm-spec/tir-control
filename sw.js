@@ -1,6 +1,6 @@
 /* Service worker mínimo: guarda la pantalla de inicio para que abra rápido y funcione sin señal.
    No guarda NINGÚN dato del negocio: los datos están solo en Google. */
-const CACHE = 'tir-lanzador-v1';
+const CACHE = 'tir-lanzador-v2';
 const ARCHIVOS = ['./', './index.html', './config.js', './manifest.webmanifest',
   './icons/icon-192.png', './icons/icon-512.png', './icons/apple-touch-icon.png', './icons/favicon-32.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(ARCHIVOS))); self.skipWaiting(); });

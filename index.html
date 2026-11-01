@@ -62,19 +62,27 @@
       <ol><li>Abra esta página en <b>Chrome</b> o <b>Edge</b>.</li><li>Pulse el ícono <b>Instalar</b> (⊕) a la derecha de la barra de direcciones, o menú <b>⋮ → Transmitir, guardar y compartir → Instalar página como app</b>.</li></ol></div>
   </section>
 
-  <div class="err hide" id="err">Falta configurar el enlace del sistema en <b>config.js</b>.</div>
+  <div class="err hide" id="err">Falta configurar el enlace del sistema en <b>config.js</b>.<br><small id="errDet" style="word-break:break-all"></small></div>
   <p class="pie">Acceso solo para usuarios autorizados. Se pedirá su cuenta de Google y su PIN.</p>
 </main>
 <script src="config.js"></script>
 <script>
 (function () {
-  var URL_APP = String(window.TIR_APP_URL || '');
-  var valido = /^https:\/\/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec$/.test(URL_APP);
+  // Acepta el enlace aunque tenga espacios, la parte /u/0/ (varias cuentas de Google abiertas) o algo después de /exec
+  var leido = String(window.TIR_APP_URL || '').trim();
+  var m = leido.match(/^https:\/\/script\.google\.com\/macros\/(?:u\/\d+\/)?s\/([A-Za-z0-9_-]{20,})\/exec/);
+  var URL_APP = m ? 'https://script.google.com/macros/s/' + m[1] + '/exec' : '';
+  var valido = !!m;
   var $ = function (id) { return document.getElementById(id); };
   var instalada = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
   var ua = navigator.userAgent, ios = /iPhone|iPad|iPod/.test(ua) || (ua.indexOf('Mac') > -1 && 'ontouchend' in document), android = /Android/.test(ua);
 
-  if (!valido) { $('err').classList.remove('hide'); }
+  if (!valido) {
+    $('err').classList.remove('hide');
+    $('errDet').textContent = window.TIR_APP_URL === undefined
+      ? 'No se pudo leer config.js (revise que el archivo esté subido junto a index.html).'
+      : 'Valor leído: «' + (leido || '(vacío)').slice(0, 120) + '». Debe empezar con https://script.google.com/macros/s/ y terminar en /exec.';
+  }
   ['abrir', 'abrir2'].forEach(function (id) {
     var a = $(id); a.href = valido ? URL_APP : '#';
     a.addEventListener('click', function (e) { if (!valido) { e.preventDefault(); $('err').classList.remove('hide'); } });
